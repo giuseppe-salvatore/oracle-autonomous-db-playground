@@ -21,21 +21,20 @@ drop_minute_bars_table = """
 
 create_minute_bars_table = """
         create table minute_bars (
-            id     NUMBER      PRIMARY KEY,
-            symbol VARCHAR2(6) NOT NULL,
-            time   DATE        NOT NULL,
-            open   NUMBER      NOT NULL,
-            close  NUMBER      NOT NULL,
-            high   NUMBER      NOT NULL,
-            low    NUMBER      NOT NULL,
-            volume NUMBER      NOT NULL,
-            UNIQUE (symbol, time)) """
+            symbol      VARCHAR2(6) NOT NULL,
+            datetime    DATE        NOT NULL,
+            open        NUMBER      NOT NULL,
+            close       NUMBER      NOT NULL,
+            high        NUMBER      NOT NULL,
+            low         NUMBER      NOT NULL,
+            volume      NUMBER      NOT NULL,
+            PRIMARY KEY (symbol, datetime)) """
 
 
 insert_data_in_minute_bars_table = """
         insert into minute_bars
-            (id, symbol, time, open, close, high, low, volume)
-            values(:1, :2, :3, :4, :5, :6, :7, :8)"""
+            (symbol, datetime, open, close, high, low, volume)
+            values(:1, :2, :3, :4, :5, :6, :7)"""
 
 count_rows_in_minute_bars_table = """
         select count(*) from minute_bars"""
@@ -83,7 +82,6 @@ for elem in ret:
     raw_data_out = []
     for i in range(0, len(raw_data)):
         raw_data_out.append((
-            raw_data[i][0],
             raw_data[i][1],
             datetime.strptime(raw_data[i][2], "%Y-%m-%d %H:%M:%S"),
             raw_data[i][3],

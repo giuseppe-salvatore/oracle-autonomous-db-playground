@@ -5,7 +5,6 @@
 import sys
 import time
 import random
-import asyncio
 
 from datetime import datetime
 from datetime import timedelta
@@ -24,21 +23,20 @@ drop_minute_bars_table = """
 
 create_minute_bars_table = """
         create table minute_bars (
-            id     NUMBER      PRIMARY KEY,
-            symbol VARCHAR2(6) NOT NULL,
-            time   DATE        NOT NULL,
-            open   NUMBER      NOT NULL,
-            close  NUMBER      NOT NULL,
-            high   NUMBER      NOT NULL,
-            low    NUMBER      NOT NULL,
-            volume NUMBER      NOT NULL,
-            UNIQUE (symbol, time))"""
+            symbol      VARCHAR2(6) NOT NULL,
+            datetime    DATE        NOT NULL,
+            open        NUMBER      NOT NULL,
+            close       NUMBER      NOT NULL,
+            high        NUMBER      NOT NULL,
+            low         NUMBER      NOT NULL,
+            volume      NUMBER      NOT NULL,
+            PRIMARY KEY (symbol, time))"""
 
 
 insert_data_in_minute_bars_table = """
         insert into minute_bars
-            (id, symbol, time, open, close, high, low, volume)
-            values(:1, :2, :3, :4, :5, :6, :7, :8)"""
+            (symbol, time, open, close, high, low, volume)
+            values(:1, :2, :3, :4, :5, :6, :7)"""
 
 count_rows_in_minute_bars_table = """
         select count(*) from minute_bars"""
@@ -87,12 +85,13 @@ def generate_bars():
 
 def get_data_from_minute_bars(connection):
     with connection.cursor() as cursor:
-
-        # print("{} total number of rows".format(len(cursor.execute('select * from minute_bars'))))
         count = 0
         initial_threshold = 100000
         current_threshold = initial_threshold
-        for _ in cursor.execute('select * from minute_bars where symbol=\'TSLA\''):
+        for _ in cursor.execute("""
+                    SELECT *
+                    FROM minute_bars
+                    WHERE symbol=\'TSLA\'"""):
             count = count + 1
             if count == current_threshold:
                 print("count is {}".format(count))
@@ -117,55 +116,6 @@ oracle_impl.execute_ddl(drop_minute_bars_table)
 
 print("Create minute_bars table")
 oracle_impl.execute_ddl(create_minute_bars_table)
-
-
-# for i in range(0, 1):
-#     rows = generate_bars()
-#     success = False
-
-#     start_pushing = datetime.utcnow()
-#     while not success:
-#         try:
-#             oracle_impl.execute_many_queries(
-#                 insert_data_in_minute_bars_table, rows)
-#             success = True
-#         except DatabaseError as dbError:
-#             error_str = str(dbError)
-#             print(error_str)
-
-#             if "ORA-30036" in error_str:
-#                 print("""Expection Handler:
-#                          DatabaseError ORA-30036
-#                          will wait 10 secs and retry""")
-#                 time.sleep(10.0)
-#             elif "ORA-00001" in error_str:
-#                 print("""Expection Handler:
-#                          DatabaseError ORA-30001
-#                          will return and proceed to next batch""")
-#                 break
-#             else:
-#                 print("""Expection Handler:
-#                          DatabaseError but not ORA-30036
-#                          will exit""")
-#                 sys.exit(1)
-#         except Exception:
-#             print("Expection Handler: I don't know what to do")
-#             sys.exit(1)
-
-#     stop_pushing = datetime.now()
-#     print("Time to push {}".format(
-#         str(stop_pushing - start_pushing).split('.', 2)[0]))
-
-#     ret = oracle_impl.execute_sql(count_rows_in_minute_bars_table)
-#     print("Row count = {}".format(ret.pop()[0]))
-#     start_count = start_count + 2
-#     end_count = end_count + 2
-#     ops_partial_time = datetime.utcnow()
-#     print("----> Partial execution time after {} rounds: {}".format(
-#         i, str(datetime.utcnow() - ops_start_time).split('.', 2)[0]))
-
-# print("----> Total execution time: {}"
-#       .format(str(datetime.utcnow() - ops_start_time).split('.', 2)[0]))
 
 
 oracleDatasource = StockMarketDataSource("OracleDB")
@@ -216,35 +166,3 @@ except DatabaseError as dbError:
 except Exception:
     print("Expection Handler: I don't know what to do")
     sys.exit(1)
-
-
-# sum = 1
-# for elem in ret2:
-#     symbol = elem[0]
-#     if symbol == "AAPL":
-#         raw_data = sqliteDatasource.get_raw_data_for_symbol(symbol)
-#         datacount[symbol] = len(raw_data)
-#         print("{} has {} entries".format(symbol, datacount[symbol]))
-#         sum = sum + datacount[symbol]
-# print(len(ret2))
-# print(sum)
-# async def print_data(symbol, datasource):
-#     start = datetime.utcnow()
-#     ret2 = datasource.get_minute_bars_for_symbol(symbol)
-#     end = datetime.utcnow()
-#     print("----> Execution time for {}: {}"
-#           .format(symbol, str(datetime.utcnow() - start).split('.', 2)[0]))
-#     print("----> Start time: {}".format(start))
-#     print("----> End time  : {}".format(end))
-#     # for elem in ret2:
-#     #     print("{}, {}, {}, {}, {}, {}, {}"
-#     #           .format(elem[1], elem[2], elem[3], elem[4], elem[5], elem[6], elem[7]))
-#     print("Size of data {}".format(len(ret2)))
-
-
-# async def print_all():
-#     futures = [print_data(item[0], StockMarketDataSource("OracleDB"))
-#                for item in ret]
-#     await asyncio.gather(*futures)
-
-# asyncio.run(print_all())

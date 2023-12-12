@@ -32,5 +32,21 @@ class StockMarketDataSource():
 
     def insert_raw_data_for_symbol(self, data: list):
         self.db.execute_many_queries("""INSERT into minute_bars
-            (id, symbol, time, open, close, high, low, volume)
-            values(:1, :2, :3, :4, :5, :6, :7, :8)""", data)
+            (symbol, datetime, open, close, high, low, volume)
+            values(:1, :2, :3, :4, :5, :6, :7)""", data)
+
+    def drop_table(self, table_name: str) -> None:
+        self.db.execute_ddl("""DROP TABLE {}
+                            """.format(table_name))
+
+    def create_table(self, table_name: str) -> None:
+        self.db.execute_ddl("""CREATE TABLE {} (
+                                symbol      VARCHAR2(6) NOT NULL,
+                                datetime    DATE        NOT NULL,
+                                open        NUMBER      NOT NULL,
+                                close       NUMBER      NOT NULL,
+                                high        NUMBER      NOT NULL,
+                                low         NUMBER      NOT NULL,
+                                volume      NUMBER      NOT NULL,
+                                PRIMARY KEY (symbol, datetime))
+                                """.format(table_name))

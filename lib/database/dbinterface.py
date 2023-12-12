@@ -13,4 +13,3 @@ class DBInterface():
     # Used to execute a query
     def execute_query(self, query):
         pass
-
