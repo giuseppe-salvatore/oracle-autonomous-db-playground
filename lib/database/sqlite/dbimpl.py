@@ -47,9 +47,9 @@ class SQLite3DB(DBInterface):
 
     def execute_many_queries(self, query: str, rows):
         try:
-            with self.connection.cursor() as cursor:
-                cursor.executemany(query, rows)
-                print(cursor.rowcount, "Rows Inserted")
+            cursor = self.connection.cursor()
+            cursor.executemany(query, rows)
+            print(cursor.rowcount, "Rows Inserted")
 
             self.connection.commit()
 
