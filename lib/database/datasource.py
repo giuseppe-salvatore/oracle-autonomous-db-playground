@@ -27,8 +27,8 @@ class StockMarketDataSource():
 
     def get_raw_data_for_symbol(self, symbol: str):
         return self.db.execute_sql("""SELECT *
-                                      FROM minute_bars
-                                      WHERE symbol=\'{}\'""".format(symbol))
+                                        FROM minute_bars
+                                        WHERE symbol=\'{}\'""".format(symbol))
 
     def insert_raw_data_for_symbol(self, data: list):
         self.db.execute_many_queries("""INSERT into minute_bars

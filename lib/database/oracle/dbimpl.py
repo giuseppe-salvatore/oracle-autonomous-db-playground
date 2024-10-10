@@ -1,5 +1,6 @@
 import oracledb
 from oracledb.cursor import Cursor
+from lib.utils.logger import log
 from lib.database.dbinterface import DBInterface
 from lib.utils.env import read_environment_variable
 
@@ -10,14 +11,14 @@ class OracleDB(DBInterface):
         self.configure()
 
     def configure(self):
-        print("Configuring Oracle Autonomous Database")
+        log.debug("Configuring Oracle Autonomous Database")
 
         self.user = read_environment_variable('ORACLE_ADB_USER')
         self.password = read_environment_variable('ORACLE_ADB_PASSWORD')
         self.dsn_tls = read_environment_variable(
             'ORACLE_ADB_TLS_CONNECTION_STRING')
 
-        print("Successfully set Oracle Autonomous Database configuration")
+        log.debug("Successfully set Oracle Autonomous Database configuration")
 
     def connect(self):
         self.connection = oracledb.connect(
@@ -48,7 +49,7 @@ class OracleDB(DBInterface):
         try:
             with self.connection.cursor() as cursor:
                 cursor.executemany(query, rows)
-                print(cursor.rowcount, "Rows Inserted")
+                log.debug(cursor.rowcount, "Rows Inserted")
 
             self.connection.commit()
 

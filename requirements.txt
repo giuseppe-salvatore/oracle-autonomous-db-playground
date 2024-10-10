@@ -1,3 +1,4 @@
 oracledb
 flake8
 autopep8
+colorlog

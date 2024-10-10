@@ -1,6 +1,7 @@
 import sqlite3
 
 from sqlite3 import Error
+from lib.utils.logger import log
 from sqlite3.dbapi2 import Cursor
 from lib.database.dbinterface import DBInterface
 from lib.utils.env import read_environment_variable
@@ -12,9 +13,9 @@ class SQLite3DB(DBInterface):
         self.configure()
 
     def configure(self):
-        print("Configuring SQLite3 Database")
+        log.debug("Configuring SQLite3 Database")
         self.db_file = read_environment_variable("SQLITE_DB_FILE")
-        print("Successfully set SQLite3 Database configuration")
+        log.debug("Successfully set SQLite3 Database configuration")
 
     def connect(self):
         """ create a database connection to a SQLite database """
@@ -22,7 +23,7 @@ class SQLite3DB(DBInterface):
         try:
             self.connection = sqlite3.connect(self.db_file)
         except Error as e:
-            print(e)
+            log.error(e)
 
     def execute_sql(self, query: str) -> list:
         try:
@@ -49,7 +50,7 @@ class SQLite3DB(DBInterface):
         try:
             cursor = self.connection.cursor()
             cursor.executemany(query, rows)
-            print(cursor.rowcount, "Rows Inserted")
+            log.debug(cursor.rowcount, "Rows Inserted")
 
             self.connection.commit()
 

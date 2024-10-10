@@ -30,7 +30,7 @@ run-bar-count-local : install
 execute-migration-to-oracle : install
 	source .venv/bin/activate && \
 	source .env.local && \
-	export SQLITE_DB_FILE=/home/gr4ce/workspace/personal/algo-trading/data/stock_data.db && \
+	export SQLITE_DB_FILE=/home/gr4ce/workspace/personal/algo-trading/data/stock_data.alpaca.db && \
 	python -m migrate_to_oracle
 
 .PHONY: clean
