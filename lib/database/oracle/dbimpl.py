@@ -31,10 +31,10 @@ class OracleDB(DBInterface):
             wallet_password=self.wallet_password,
         )
 
-    def execute_sql(self, query: str) -> Cursor:
+    def execute_sql(self, query: str, parameters=None) -> Cursor:
         try:
             with self.connection.cursor() as cursor:
-                ret: Cursor = cursor.execute(query)
+                ret: Cursor = cursor.execute(query, parameters or {})
                 return ret.fetchall()
         except Exception as e:
             self.connection.rollback()

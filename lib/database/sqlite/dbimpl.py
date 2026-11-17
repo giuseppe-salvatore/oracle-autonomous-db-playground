@@ -24,10 +24,10 @@ class SQLite3DB(DBInterface):
         except Error as e:
             log.error(e)
 
-    def execute_sql(self, query: str) -> list:
+    def execute_sql(self, query: str, parameters=None) -> list:
         try:
             cursor = self.connection.cursor()
-            ret: Cursor = cursor.execute(query)
+            ret: Cursor = cursor.execute(query, parameters or {})
             return ret.fetchall()
         except Exception as e:
             self.connection.rollback()
