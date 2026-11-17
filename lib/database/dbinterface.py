@@ -8,5 +8,5 @@ class DBInterface:
         pass
 
     # Used to execute a query
-    def execute_query(self, query):
+    def execute_sql(self, query, parameters=None):
         pass
