@@ -15,12 +15,20 @@ class OracleDB(DBInterface):
         self.user = read_environment_variable("ORACLE_ADB_USER")
         self.password = read_environment_variable("ORACLE_ADB_PASSWORD")
         self.dsn_tls = read_environment_variable("ORACLE_ADB_TLS_CONNECTION_STRING")
+        self.config_dir = read_environment_variable("ORACLE_ADB_WALLET_DIR")
+        self.wallet_location = read_environment_variable("ORACLE_ADB_WALLET_DIR")
+        self.wallet_password = read_environment_variable("ORACLE_ADB_WALLET_PASSWORD")
 
         log.debug("Successfully set Oracle Autonomous Database configuration")
 
     def connect(self):
         self.connection = oracledb.connect(
-            user=self.user, password=self.password, dsn=self.dsn_tls
+            user=self.user,
+            password=self.password,
+            dsn=self.dsn_tls,
+            config_dir=self.config_dir,
+            wallet_location=self.wallet_location,
+            wallet_password=self.wallet_password,
         )
 
     def execute_sql(self, query: str) -> Cursor:
