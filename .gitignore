@@ -62,6 +62,5 @@ ojdbc.properties
 sqlnet.ora
 tnsnames.ora
 
-# Generated, host-specific reference files
-/README
+# Generated, host-specific reference file
 /board-info.txt
