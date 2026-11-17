@@ -53,33 +53,36 @@ def generate_bars():
     symbols = ["TSLA", "AAPL", "MSFT", "CICCA"]
     now = datetime.utcnow()
 
-    start = start_count*100*100*100
+    start = start_count * 100 * 100 * 100
     end = start + entires
 
     print("Inserting indexes from {} to {}".format(start, end))
     for i in range(start, end):
         random_open = random.randint(500, 50000)
         random_max = random.randint(
-            random_open, int(random_open + random_open * 10 / 100))
+            random_open, int(random_open + random_open * 10 / 100)
+        )
         random_min = random.randint(
-            int(random_open - random_open * 10 / 100), random_open)
+            int(random_open - random_open * 10 / 100), random_open
+        )
         random_close = random.randint(random_min, random_max)
         volume = random.randint(500, 100000000)
-        rows.append((
-            i,
-            symbols[i % 4],
-            now + timedelta(minutes=i),
-            random_open/100,
-            random_close/100,
-            random_max/100,
-            random_min/100,
-            volume
-        ))
+        rows.append(
+            (
+                i,
+                symbols[i % 4],
+                now + timedelta(minutes=i),
+                random_open / 100,
+                random_close / 100,
+                random_max / 100,
+                random_min / 100,
+                volume,
+            )
+        )
 
     stop_generating = datetime.now()
     print("Generated {} entires".format(len(rows)))
-    print("Time to generate {}".format(
-        str(stop_generating - now).split('.', 2)[0]))
+    print("Time to generate {}".format(str(stop_generating - now).split(".", 2)[0]))
     return rows
 
 
@@ -102,7 +105,7 @@ def get_data_from_minute_bars(connection):
 def count_rows_in_minute_bars(conn):
 
     with conn.cursor() as cursor:
-        for row in cursor.execute('select count(*) from minute_bars'):
+        for row in cursor.execute("select count(*) from minute_bars"):
             print(row)
 
 
@@ -131,16 +134,18 @@ print("{} has {} entries".format(symbol, datacount[symbol]))
 
 raw_data_out = []
 for i in range(0, len(raw_data)):
-    raw_data_out.append((
-        raw_data[i][0],
-        raw_data[i][1],
-        datetime.strptime(raw_data[i][2], "%Y-%m-%d %H:%M:%S"),
-        raw_data[i][3],
-        raw_data[i][4],
-        raw_data[i][5],
-        raw_data[i][6],
-        raw_data[i][7],
-    ))
+    raw_data_out.append(
+        (
+            raw_data[i][0],
+            raw_data[i][1],
+            datetime.strptime(raw_data[i][2], "%Y-%m-%d %H:%M:%S"),
+            raw_data[i][3],
+            raw_data[i][4],
+            raw_data[i][5],
+            raw_data[i][6],
+            raw_data[i][7],
+        )
+    )
 
 
 try:

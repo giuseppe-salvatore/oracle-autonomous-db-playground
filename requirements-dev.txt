@@ -1,0 +1,5 @@
+-r requirements.txt
+pip-audit
+pre-commit
+pytest
+ruff

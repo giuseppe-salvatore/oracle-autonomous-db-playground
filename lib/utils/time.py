@@ -2,11 +2,11 @@ from datetime import datetime
 
 
 def time_diff(start_time: datetime, end_time: datetime) -> str:
-    return str(end_time - start_time).split('.', 2)[0]
+    return str(end_time - start_time).split(".", 2)[0]
 
 
 def to_userfriendly_str(time: str):
-    tokens = time.split(':')
+    tokens = time.split(":")
     final_str = ""
     if int(tokens[0]) > 0:
         final_str += str(int(tokens[0]))

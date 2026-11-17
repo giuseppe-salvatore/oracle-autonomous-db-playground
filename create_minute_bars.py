@@ -9,6 +9,6 @@ if __name__ == "__main__":
 
     if db in available_db:
         datasource = StockMarketDataSource(db)
-        ret = datasource.create_table('minute_bars')
+        ret = datasource.create_table("minute_bars")
     else:
         raise Exception(f"Unknown database {db}")

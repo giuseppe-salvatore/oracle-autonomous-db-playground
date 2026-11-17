@@ -70,18 +70,21 @@ for elem in ret:
 
     raw_data_out = []
     for i in range(0, len(raw_data)):
-        raw_data_out.append((
-            raw_data[i][1],
-            datetime.strptime(raw_data[i][2], "%Y-%m-%d %H:%M:%S"),
-            raw_data[i][3],
-            raw_data[i][4],
-            raw_data[i][5],
-            raw_data[i][6],
-            raw_data[i][7],
-        ))
+        raw_data_out.append(
+            (
+                raw_data[i][1],
+                datetime.strptime(raw_data[i][2], "%Y-%m-%d %H:%M:%S"),
+                raw_data[i][3],
+                raw_data[i][4],
+                raw_data[i][5],
+                raw_data[i][6],
+                raw_data[i][7],
+            )
+        )
     try:
         sqliteDatasource.insert_raw_data_for_symbol_in_table(
-            "minute_bars_repl", raw_data_out)
+            "minute_bars_repl", raw_data_out
+        )
     except DatabaseError as dbError:
         error_str = str(dbError)
         print(error_str)
@@ -107,9 +110,18 @@ for elem in ret:
 
 end_migration_process = datetime.utcnow()
 
-print("Fetching symbol time: {}".format(
-    str(start_migration_process - start_fetching).split('.', 2)[0]))
-print("Migration time      : {}".format(
-    str(end_migration_process - start_migration_process).split('.', 2)[0]))
-print("Total migration time: {}".format(
-    str(end_migration_process - start_fetching).split('.', 2)[0]))
+print(
+    "Fetching symbol time: {}".format(
+        str(start_migration_process - start_fetching).split(".", 2)[0]
+    )
+)
+print(
+    "Migration time      : {}".format(
+        str(end_migration_process - start_migration_process).split(".", 2)[0]
+    )
+)
+print(
+    "Total migration time: {}".format(
+        str(end_migration_process - start_fetching).split(".", 2)[0]
+    )
+)

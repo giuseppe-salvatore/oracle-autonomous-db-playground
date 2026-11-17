@@ -6,25 +6,22 @@ from lib.utils.env import read_environment_variable
 
 
 class OracleDB(DBInterface):
-
     def __init__(self):
         self.configure()
 
     def configure(self):
         log.debug("Configuring Oracle Autonomous Database")
 
-        self.user = read_environment_variable('ORACLE_ADB_USER')
-        self.password = read_environment_variable('ORACLE_ADB_PASSWORD')
-        self.dsn_tls = read_environment_variable(
-            'ORACLE_ADB_TLS_CONNECTION_STRING')
+        self.user = read_environment_variable("ORACLE_ADB_USER")
+        self.password = read_environment_variable("ORACLE_ADB_PASSWORD")
+        self.dsn_tls = read_environment_variable("ORACLE_ADB_TLS_CONNECTION_STRING")
 
         log.debug("Successfully set Oracle Autonomous Database configuration")
 
     def connect(self):
         self.connection = oracledb.connect(
-            user=self.user,
-            password=self.password,
-            dsn=self.dsn_tls)
+            user=self.user, password=self.password, dsn=self.dsn_tls
+        )
 
     def execute_sql(self, query: str) -> Cursor:
         try:
