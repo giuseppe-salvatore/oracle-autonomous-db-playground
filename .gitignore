@@ -61,3 +61,7 @@ truststore.jks
 ojdbc.properties
 sqlnet.ora
 tnsnames.ora
+
+# Generated, host-specific reference files
+/README
+/board-info.txt
