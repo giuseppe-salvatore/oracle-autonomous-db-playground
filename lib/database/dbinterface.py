@@ -1,7 +1,4 @@
-
-
-class DBInterface():
-
+class DBInterface:
     # Used to configure the class with env variables
     def configure(self):
         pass

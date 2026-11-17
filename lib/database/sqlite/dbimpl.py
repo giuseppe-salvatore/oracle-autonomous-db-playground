@@ -8,7 +8,6 @@ from lib.utils.env import read_environment_variable
 
 
 class SQLite3DB(DBInterface):
-
     def __init__(self):
         self.configure()
 
@@ -18,7 +17,7 @@ class SQLite3DB(DBInterface):
         log.debug("Successfully set SQLite3 Database configuration")
 
     def connect(self):
-        """ create a database connection to a SQLite database """
+        """create a database connection to a SQLite database"""
         self.connection = None
         try:
             self.connection = sqlite3.connect(self.db_file)

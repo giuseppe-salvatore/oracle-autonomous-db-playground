@@ -76,18 +76,20 @@ def migrate_symbol(symbol):
 
     raw_data_out = []
     for i in range(0, data_length):
-        raw_data_out.append((
-            raw_data[i][0],
-            datetime.strptime(raw_data[i][1], "%Y-%m-%d %H:%M:%S"),
-            raw_data[i][2],
-            raw_data[i][3],
-            raw_data[i][4],
-            raw_data[i][5],
-            raw_data[i][6],
-        ))
+        raw_data_out.append(
+            (
+                raw_data[i][0],
+                datetime.strptime(raw_data[i][1], "%Y-%m-%d %H:%M:%S"),
+                raw_data[i][2],
+                raw_data[i][3],
+                raw_data[i][4],
+                raw_data[i][5],
+                raw_data[i][6],
+            )
+        )
 
     completed = False
-    while (not completed):
+    while not completed:
         try:
             oracleDatasource.insert_raw_data_for_symbol(raw_data_out)
             completed = True
@@ -97,7 +99,8 @@ def migrate_symbol(symbol):
 
             if "ORA-30036" in error_str:
                 log.warning(
-                    """Exception Handler: DatabaseError ORA-30036... will wait 10 secs and retry""")
+                    """Exception Handler: DatabaseError ORA-30036... will wait 10 secs and retry"""
+                )
                 time.sleep(10.0)
             elif "ORA-00001" in error_str:
                 log.warning("""Exception Handler:
@@ -106,16 +109,20 @@ def migrate_symbol(symbol):
                 completed = True
             else:
                 log.error(
-                    """Exception Handler: DatabaseError but not ORA-30036 will exit as I think this is critical""")
+                    """Exception Handler: DatabaseError but not ORA-30036 will exit as I think this is critical"""
+                )
                 sys.exit(1)
         except Exception:
             log.error("Exception Handler: I don't know what to do")
             sys.exit(1)
 
-    log.info("Migrating {} which has {} entries took {}".format(
-        symbol,
-        data_length,
-        str(datetime.now() - start_migration_process).split('.', 2)[0]))
+    log.info(
+        "Migrating {} which has {} entries took {}".format(
+            symbol,
+            data_length,
+            str(datetime.now() - start_migration_process).split(".", 2)[0],
+        )
+    )
 
     return [symbol, data_length]
 
@@ -128,16 +135,17 @@ def initialize_multiprocessing_pool():
     actual_load = min(mp.cpu_count(), max_load)
     log.info(f"NOTE: we are using the min of the above which is {actual_load}")
 
-    start = time.time()
     log.info(
-        "Initializing a multi-process pool with {} parallel processes".format(actual_load))
+        "Initializing a multi-process pool with {} parallel processes".format(
+            actual_load
+        )
+    )
 
     return mp.Pool(min(mp.cpu_count(), max_load))
 
 
 def main():
 
-    ops_start_time = datetime.now()
     pool = initialize_multiprocessing_pool()
 
     # Initial db setup
@@ -163,14 +171,10 @@ def main():
     print(target_symbols)
 
     for symbol in target_symbols:
-        if type(symbol) != str:
+        if not isinstance(symbol, str):
             print("This is a problem")
             print(symbol)
-        res.append(pool.apply_async(
-            migrate_symbol,
-            args=(symbol,)
-        )
-        )
+        res.append(pool.apply_async(migrate_symbol, args=(symbol,)))
 
     data_count = {}
     for r in res:
@@ -184,14 +188,22 @@ def main():
 
     end_migration_process = datetime.now()
 
-    print("Fetching symbol time: {}".format(
-        str(start_migration_process - start_fetching).split('.', 2)[0]))
-    print("Migration time      : {}".format(
-        str(end_migration_process - start_migration_process).split('.', 2)[0]))
-    print("Total migration time: {}".format(
-        str(end_migration_process - start_fetching).split('.', 2)[0]))
+    print(
+        "Fetching symbol time: {}".format(
+            str(start_migration_process - start_fetching).split(".", 2)[0]
+        )
+    )
+    print(
+        "Migration time      : {}".format(
+            str(end_migration_process - start_migration_process).split(".", 2)[0]
+        )
+    )
+    print(
+        "Total migration time: {}".format(
+            str(end_migration_process - start_fetching).split(".", 2)[0]
+        )
+    )
 
 
 if __name__ == "__main__":
-
     main()

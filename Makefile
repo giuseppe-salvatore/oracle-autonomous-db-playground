@@ -10,13 +10,29 @@ install:
 	python -m pip install --upgrade pip && \
 	python -m pip install -r requirements.txt
 
-format: install
+install-dev: install
 	source .venv/bin/activate && \
-	for target in `find  -name "*.py" -not -path "./.venv/*"`; do autopep8 -i $$target; done
+	python -m pip install -r requirements-dev.txt
 
-verify: install
+format: install-dev
 	source .venv/bin/activate && \
-	flake8 . --extend-exclude=dist,build,.venv --show-source --statistics
+	ruff format .
+
+verify: install-dev
+	source .venv/bin/activate && \
+	ruff format --check . && \
+	ruff check .
+
+test: install-dev
+	source .venv/bin/activate && \
+	pytest
+
+audit: install-dev
+	source .venv/bin/activate && \
+	pip-audit -r requirements.txt
+
+shellcheck:
+	shellcheck scripts/*.sh
 
 run-consistency-check : install
 	bash scripts/run_consistency_check.sh 
@@ -33,6 +49,15 @@ execute-migration-to-oracle : install
 	export SQLITE_DB_FILE=/home/gr4ce/workspace/personal/algo-trading/data/stock_data.alpaca.db && \
 	python -m migrate_to_oracle
 
-.PHONY: clean
+.PHONY: audit check clean format install install-dev shellcheck test verify
+
+check: install-dev
+	source .venv/bin/activate && \
+	ruff format --check . && \
+	ruff check . && \
+	pytest && \
+	pip-audit -r requirements.txt
+	shellcheck scripts/*.sh
+
 clean :
 	rm -rf .pytest_cache/ .venv/ test-reports/ .pytest_cache/

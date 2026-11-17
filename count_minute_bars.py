@@ -17,7 +17,6 @@ if __name__ == "__main__":
     if db in available_db:
         datasource = StockMarketDataSource(db)
         ret = datasource.count_minute_bars(symbol)
-        print(
-            "There are {} bars available in the selected db".format(ret[0][0]))
+        print("There are {} bars available in the selected db".format(ret[0][0]))
     else:
         print("Database connection only availble to {}".format(available_db))
