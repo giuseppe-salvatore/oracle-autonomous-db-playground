@@ -2,10 +2,12 @@ import argparse
 import sys
 from datetime import datetime
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
 
 available_db = ["OracleDB", "SQLite3DB"]
 
 if __name__ == "__main__":
+    install_error_handler("get_bars")
     parser = argparse.ArgumentParser(description="Fetch minute bars for a symbol.")
     parser.add_argument("db", choices=available_db)
     parser.add_argument("symbol")

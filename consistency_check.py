@@ -6,11 +6,13 @@ import argparse
 from datetime import datetime
 from lib.utils.time import time_diff, to_userfriendly_str
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
 
 
 available_db = ["OracleDB", "SQLite3DB"]
 
 if __name__ == "__main__":
+    install_error_handler("consistency_check")
     argparse.ArgumentParser(
         description="Compare Oracle and SQLite data counts."
     ).parse_args()

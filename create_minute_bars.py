@@ -1,9 +1,11 @@
 import argparse
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
 
 available_db = ["OracleDB"]
 
 if __name__ == "__main__":
+    install_error_handler("create_minute_bars")
     parser = argparse.ArgumentParser(description="Create the Oracle minute bars table.")
     parser.add_argument("db", choices=available_db)
     db = parser.parse_args().db

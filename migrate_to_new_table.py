@@ -9,6 +9,9 @@ import time
 from datetime import datetime
 from oracledb.exceptions import DatabaseError
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
+
+install_error_handler("migrate_to_new_table")
 
 parser = argparse.ArgumentParser(
     description="Copy SQLite symbols into minute_bars_repl."

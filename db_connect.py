@@ -12,6 +12,9 @@ from datetime import timedelta
 from oracledb.exceptions import DatabaseError
 from lib.database.oracle.dbimpl import OracleDB
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
+
+install_error_handler("db_connect")
 
 argparse.ArgumentParser(
     description="Legacy demo: drops and recreates the Oracle minute_bars table."

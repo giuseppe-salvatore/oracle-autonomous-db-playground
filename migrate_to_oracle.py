@@ -6,6 +6,7 @@ from datetime import datetime
 from oracledb.exceptions import DatabaseError
 
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
 from lib.database.oracle.dbimpl import OracleDB
 from lib.utils.logger import log
 
@@ -227,4 +228,5 @@ def main(args=None):
 
 
 if __name__ == "__main__":
+    install_error_handler("migrate_to_oracle")
     main()
