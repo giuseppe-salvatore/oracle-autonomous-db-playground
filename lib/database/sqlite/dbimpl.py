@@ -1,4 +1,5 @@
 import sqlite3
+import re
 
 from sqlite3 import Error
 from lib.utils.logger import log
@@ -36,19 +37,21 @@ class SQLite3DB(DBInterface):
             cursor.close()
 
     def execute_ddl(self, query: str):
+        cursor = self.connection.cursor()
         try:
-            with self.connection.cursor() as cursor:
-                cursor.execute(query)
-
+            cursor.execute(query)
             self.connection.commit()
         except Exception as e:
             self.connection.rollback()
             raise e
+        finally:
+            cursor.close()
 
     def execute_many_queries(self, query: str, rows):
+        cursor = self.connection.cursor()
         try:
-            cursor = self.connection.cursor()
-            cursor.executemany(query, rows)
+            sqlite_query = re.sub(r":\d+", "?", query)
+            cursor.executemany(sqlite_query, rows)
             log.debug(cursor.rowcount, "Rows Inserted")
 
             self.connection.commit()
@@ -56,6 +59,8 @@ class SQLite3DB(DBInterface):
         except Exception as e:
             self.connection.rollback()
             raise e
+        finally:
+            cursor.close()
 
     def get_connection(self):
         return self.connection
