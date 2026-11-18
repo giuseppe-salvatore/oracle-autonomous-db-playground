@@ -1,4 +1,5 @@
 import os
+import fcntl
 import shutil
 import subprocess
 from pathlib import Path
@@ -102,7 +103,34 @@ def test_pinger_failure_notifies_topic_but_keeps_original_exit_code(
     )
 
     assert result.returncode == 7
+    assert "Failed to send pinger notification" in result.stderr
     request_args = (tmp_path / "curl-args.txt").read_text()
     assert "https://ntfy.sh/test-topic-only" in request_args
     assert "Exit code: 7" in request_args
     assert "database failed" in result.stdout
+
+
+@pytest.mark.parametrize("db,symbol", [("bad", "AAPL"), ("OracleDB", "../oops")])
+def test_pinger_rejects_invalid_arguments(pinger_environment, db, symbol):
+    script, _home, env, tmp_path = pinger_environment
+    result = subprocess.run(
+        ["bash", str(script), db, symbol], env=env, capture_output=True, text=True
+    )
+    assert result.returncode == 2
+    assert not (tmp_path / "python-args.txt").exists()
+
+
+def test_pinger_refuses_concurrent_run(pinger_environment):
+    script, home, env, tmp_path = pinger_environment
+    lock = home / "workspace" / "oracle-pinger-AAPL.lock"
+    with lock.open("w") as handle:
+        fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        result = subprocess.run(
+            ["bash", str(script), "OracleDB", "AAPL"],
+            env=env,
+            capture_output=True,
+            text=True,
+        )
+    assert result.returncode == 1
+    assert "already running" in result.stderr
+    assert not (tmp_path / "python-args.txt").exists()
