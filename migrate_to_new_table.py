@@ -2,12 +2,22 @@
 # https://oracle.github.io/python-oracledb/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html
 # https://apexapps.oracle.com/pls/apex/r/dbpm/livelabs/view-workshop?wid=3482
 
+import argparse
 import sys
 import time
 
 from datetime import datetime
 from oracledb.exceptions import DatabaseError
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
+
+install_error_handler("migrate_to_new_table")
+
+parser = argparse.ArgumentParser(
+    description="Copy SQLite symbols into minute_bars_repl."
+)
+parser.add_argument("symbols", nargs="*")
+args = parser.parse_args()
 
 # Just making a connection to the db
 
@@ -51,13 +61,12 @@ start_fetching = datetime.utcnow()
 
 ret = []
 
-if len(sys.argv) == 1:
+if not args.symbols:
     all_sym = sqliteDatasource.get_all_symbols()
     for elem in all_sym:
         ret.append(elem[0])
 else:
-    for i in range(1, len(sys.argv)):
-        ret.append(sys.argv[i])
+    ret.extend(args.symbols)
 
 
 start_migration_process = datetime.utcnow()

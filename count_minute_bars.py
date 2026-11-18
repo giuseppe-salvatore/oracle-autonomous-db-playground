@@ -2,17 +2,19 @@
 # https://oracle.github.io/python-oracledb/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html
 # https://apexapps.oracle.com/pls/apex/r/dbpm/livelabs/view-workshop?wid=3482
 
-import sys
+import argparse
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
 
 available_db = ["OracleDB", "SQLite3DB"]
 
 if __name__ == "__main__":
-    db = sys.argv[1]
-    symbol = None
-
-    if len(sys.argv) == 3:
-        symbol = sys.argv[2]
+    install_error_handler("count_minute_bars")
+    parser = argparse.ArgumentParser(description="Count minute bars.")
+    parser.add_argument("db", choices=available_db)
+    parser.add_argument("symbol", nargs="?")
+    args = parser.parse_args()
+    db, symbol = args.db, args.symbol
 
     if db in available_db:
         datasource = StockMarketDataSource(db)

@@ -1,71 +1,61 @@
-# Oracle/SQLite3 DB python playground
-## What is this repository for?
+# Oracle and SQLite stock data playground
 
-- Just for fun and keep up with DB programming with python
-- The repo aims at containing some scripts to operate with minute candle for stock trading and analysis. It uses both SQLite3 and Oracle Autonomous DB
-- There are a few useful scripts to migrate the data from a local instance of SQLite DB to the remote one that is the Oracle DB. You can then perform some checks and query candles in both DBs
-</br>
+Tools to query and compare stock minute bars in SQLite and Oracle Autonomous Database, and migrate SQLite data to Oracle.
 
-## Configuration of Databases
-### SQLite3
-In this case the configuration is very simple. Set an environment variable named `SQLITE_DB_FILE` and make it point to the db file (and add it to .env.local file if you prefer)... that's it 
+## Setup
 
-### Oracle Autonomous DB  
-I have used this provider because Oracle gives you 2 database with up to 20GB for free... so why not?
-The configuration needs to set up 3 variables
-- `ORACLE_ADB_USER` and `ORACLE_ADB_PASSWORD` are pretty self explanatory. You will need to configure it in your Oracle Cloud dashboard
-- `ORACLE_ADB_TLS_CONNECTION_STRING` for this one you will need to configure your db to use TLS and mTLS. You will be able to see a long string in your Oracle Cloud dashboard and you will need to set it as a value for this variable
-</br>
+Python 3.11 is used for the locked dependencies and continuous integration.
 
-
-## How do I get set up?
-
-- Start your python virtual environment
-
-```
+```bash
+make prepare
+make install
 source .venv/bin/activate
-```
-
-- Install the dependencies
-
-```
-python -m pip install --require-hashes -r requirements.txt
-```
-
-- Import key environment variables
-
-```
 source .env.local
 ```
 
-- Run any of the available python scrips
+Keep `.env.local` and wallet files private. The `.local` suffix is ignored by Git.
+Set and export these environment variables in `.env.local`, using your own values:
 
-```
-python <script>.py
+- `SQLITE_DB_FILE`: path to the SQLite database.
+- `ORACLE_ADB_USER` and `ORACLE_ADB_PASSWORD`: Oracle database credentials.
+- `ORACLE_ADB_TLS_CONNECTION_STRING`: Oracle connection string.
+- `ORACLE_ADB_WALLET_DIR`: directory containing the downloaded Oracle wallet and network configuration.
+- `ORACLE_ADB_WALLET_PASSWORD`: wallet password.
+- `NTFY_TOPIC`: notification topic used by the Raspberry Pi pinger.
+
+Oracle connections use the wallet for mutual TLS. Obtain the wallet and connection details from your Oracle Cloud database configuration; do not commit them.
+
+## Commands
+
+Run a command with `--help` for its arguments. Examples:
+
+```bash
+python count_minute_bars.py SQLite3DB AAPL
+python get_bars.py SQLite3DB AAPL
+python consistency_check.py
+python migrate_to_oracle.py --workers 2
+bash scripts/run_count_minute_bars.sh OracleDB AAPL
 ```
 
-Alternatively, if you don't want to source the config files just look at the scripts folder which contains bash scripts for linux. Each script does it for you.
-For example:
+The Oracle migration stages data in `minute_bars_repl` and checks row counts. It changes the target only with `--replace`, which requires every source symbol and retains an existing target as `minute_bars_backup`. Existing staging or backup tables can block a run; inspect them before removing or renaming them. Oracle operations and recovery should be verified against a test database first.
 
-```
-bash scripts/<script>.sh
-```
-</br>
-</br>
+`drop_minute_bars.py` drops the Oracle table. The legacy `db_connect.py` demo also drops and recreates it; use with care. `migrate_to_new_table.py` is a legacy SQLite copy script.
+
+Run local checks with `make check` after `make prepare`; it installs development dependencies and requires ShellCheck. `make verify`, `make test`, and `make audit` run individual checks.
+
+## Troubleshooting
+
+- Missing environment variable: export it in `.env.local`, then source that file.
+- Oracle wallet or connection failure: check the wallet directory, password, connection string, network access and database configuration.
+- Pinger notification failure: check `NTFY_TOPIC` and network access; the script reports notification errors to stderr.
 
 ## Updating Python dependencies
 
-The requirements files are locked for Python 3.11. Edit `requirements.in` or
-`requirements-dev.in`, install `uv`, then regenerate both locks:
+Edit `requirements.in` or `requirements-dev.in`, install `uv`, then regenerate both locks:
 
 ```bash
 uv pip compile --python-version 3.11 --generate-hashes --no-emit-index-url requirements.in -o requirements.txt
 uv pip compile --python-version 3.11 --generate-hashes --no-emit-index-url requirements-dev.in -o requirements-dev.txt
 ```
 
-Review both generated files together when updating dependencies. Verify the
-locks on each target platform before deploying them.
-
-## Who do I talk to?
-
-- Maintainer: Giuseppe Salvatore giuseppe.salvatore@gmail.com
+Review both generated files together and verify them on each target platform before deploying.

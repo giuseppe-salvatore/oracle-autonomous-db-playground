@@ -2,6 +2,7 @@
 # https://oracle.github.io/python-oracledb/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html
 # https://apexapps.oracle.com/pls/apex/r/dbpm/livelabs/view-workshop?wid=3482
 
+import argparse
 import sys
 import time
 import random
@@ -11,6 +12,13 @@ from datetime import timedelta
 from oracledb.exceptions import DatabaseError
 from lib.database.oracle.dbimpl import OracleDB
 from lib.database.datasource import StockMarketDataSource
+from lib.utils.cli import install_error_handler
+
+install_error_handler("db_connect")
+
+argparse.ArgumentParser(
+    description="Legacy demo: drops and recreates the Oracle minute_bars table."
+).parse_args()
 
 # Just making a connection to the db
 
