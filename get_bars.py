@@ -1,3 +1,4 @@
+import argparse
 import sys
 from datetime import datetime
 from lib.database.datasource import StockMarketDataSource
@@ -5,8 +6,11 @@ from lib.database.datasource import StockMarketDataSource
 available_db = ["OracleDB", "SQLite3DB"]
 
 if __name__ == "__main__":
-    db = sys.argv[1]
-    symbol = sys.argv[2]
+    parser = argparse.ArgumentParser(description="Fetch minute bars for a symbol.")
+    parser.add_argument("db", choices=available_db)
+    parser.add_argument("symbol")
+    args = parser.parse_args()
+    db, symbol = args.db, args.symbol
 
     if db in available_db:
         datasource = StockMarketDataSource(db)

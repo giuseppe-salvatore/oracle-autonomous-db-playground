@@ -1,11 +1,12 @@
-import sys
+import argparse
 from lib.database.datasource import StockMarketDataSource
 
 available_db = ["OracleDB"]
 
 if __name__ == "__main__":
-    db = sys.argv[1]
-    symbol = None
+    parser = argparse.ArgumentParser(description="Create the Oracle minute bars table.")
+    parser.add_argument("db", choices=available_db)
+    db = parser.parse_args().db
 
     if db in available_db:
         datasource = StockMarketDataSource(db)

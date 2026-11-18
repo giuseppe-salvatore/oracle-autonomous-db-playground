@@ -2,6 +2,7 @@
 # https://oracle.github.io/python-oracledb/samples/tutorial/Python-and-Oracle-Database-The-New-Wave-of-Scripting.html
 # https://apexapps.oracle.com/pls/apex/r/dbpm/livelabs/view-workshop?wid=3482
 
+import argparse
 from datetime import datetime
 from lib.utils.time import time_diff, to_userfriendly_str
 from lib.database.datasource import StockMarketDataSource
@@ -10,6 +11,9 @@ from lib.database.datasource import StockMarketDataSource
 available_db = ["OracleDB", "SQLite3DB"]
 
 if __name__ == "__main__":
+    argparse.ArgumentParser(
+        description="Compare Oracle and SQLite data counts."
+    ).parse_args()
     start = datetime.utcnow()
 
     oracle_ds = StockMarketDataSource("OracleDB")
