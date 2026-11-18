@@ -27,11 +27,11 @@ prepare:
 install:
 	source .venv/bin/activate && \
 	python -m pip install --upgrade pip && \
-	python -m pip install -r requirements.txt
+	python -m pip install --require-hashes -r requirements.txt
 
 install-dev: install
 	source .venv/bin/activate && \
-	python -m pip install -r requirements-dev.txt
+	python -m pip install --require-hashes -r requirements-dev.txt
 
 format: install-dev
 	source .venv/bin/activate && \

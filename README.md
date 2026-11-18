@@ -29,7 +29,7 @@ source .venv/bin/activate
 - Install the dependencies
 
 ```
-python -m pip install -r requirements.txt user
+python -m pip install --require-hashes -r requirements.txt
 ```
 
 - Import key environment variables
@@ -52,6 +52,19 @@ bash scripts/<script>.sh
 ```
 </br>
 </br>
+
+## Updating Python dependencies
+
+The requirements files are locked for Python 3.11. Edit `requirements.in` or
+`requirements-dev.in`, install `uv`, then regenerate both locks:
+
+```bash
+uv pip compile --python-version 3.11 --generate-hashes --no-emit-index-url requirements.in -o requirements.txt
+uv pip compile --python-version 3.11 --generate-hashes --no-emit-index-url requirements-dev.in -o requirements-dev.txt
+```
+
+Review both generated files together when updating dependencies. Verify the
+locks on each target platform before deploying them.
 
 ## Who do I talk to?
 
