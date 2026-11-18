@@ -6,6 +6,15 @@ PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DB="${1:?Database argument missing}"
 SYMBOL="${2:?Symbol argument missing}"
 
+case "$DB" in
+  OracleDB|SQLite3DB) ;;
+  *) echo "Unsupported database: $DB" >&2; exit 2 ;;
+esac
+if [[ ! "$SYMBOL" =~ ^[A-Za-z0-9._-]+$ ]] || [[ "$SYMBOL" == . || "$SYMBOL" == .. ]]; then
+  echo "Invalid symbol: $SYMBOL" >&2
+  exit 2
+fi
+
 resolve_workspace_root() {
   local candidate
   for candidate in "$HOME/workspace" "$HOME/Workspace"; do
@@ -22,6 +31,16 @@ resolve_workspace_root() {
 WORKSPACE_ROOT="$(resolve_workspace_root)"
 OUTPUT_FILE="${WORKSPACE_ROOT}/oracle-pinger-${SYMBOL}-output.log"
 ERROR_FILE="${WORKSPACE_ROOT}/oracle-pinger-${SYMBOL}-error.log"
+exec 9>"${WORKSPACE_ROOT}/oracle-pinger-${SYMBOL}.lock"
+if ! flock -n 9; then
+  echo "Pinger already running for ${SYMBOL}" >&2
+  exit 1
+fi
+
+# shellcheck source=/dev/null
+. "${PROJECT_DIR}/.venv/bin/activate"
+# shellcheck source=/dev/null
+. "${PROJECT_DIR}/.env.local"
 
 NTFY_TOPIC="${NTFY_TOPIC:?NTFY_TOPIC must be set in .env.local}"
 NTFY_URL="https://ntfy.sh/${NTFY_TOPIC}"
@@ -29,11 +48,13 @@ NTFY_URL="https://ntfy.sh/${NTFY_TOPIC}"
 notify_failure() {
   local message="$1"
 
-  curl -fsS \
+  if ! curl -fsS \
     -H "Title: Raspberry Pi Oracle pinger failed" \
     -H "Priority: high" \
     -d "$message" \
-    "$NTFY_URL" > /dev/null
+    "$NTFY_URL" > /dev/null; then
+    echo "Failed to send pinger notification" >&2
+  fi
 }
 
 print_captured_logs() {
@@ -49,13 +70,15 @@ print_captured_logs() {
   fi
 }
 
-TMP_OUTPUT="$(mktemp)"
-TMP_ERROR="$(mktemp)"
+TMP_OUTPUT=""
+TMP_ERROR=""
+cleanup() { rm -f -- "$TMP_OUTPUT" "$TMP_ERROR"; }
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+TMP_OUTPUT="$(mktemp)" || exit 1
+TMP_ERROR="$(mktemp)" || exit 1
 
-# shellcheck source=/dev/null
-. "${PROJECT_DIR}/.venv/bin/activate"
-# shellcheck source=/dev/null
-. "${PROJECT_DIR}/.env.local"
 python "${PROJECT_DIR}/count_minute_bars.py" "$DB" "$SYMBOL" > "$TMP_OUTPUT" 2> "$TMP_ERROR"
 EXIT_CODE=$?
 
