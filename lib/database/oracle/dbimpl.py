@@ -64,3 +64,8 @@ class OracleDB(DBInterface):
 
     def get_connection(self):
         return self.connection
+
+    def close(self):
+        if getattr(self, "connection", None) is not None:
+            self.connection.close()
+            self.connection = None
