@@ -1,7 +1,7 @@
 import argparse
 import sys
 from datetime import datetime
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 
 available_db = ["OracleDB", "SQLite3DB"]
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     db, symbol = args.db, args.symbol
 
     if db in available_db:
-        datasource = StockMarketDataSource(db)
+        datasource = create_data_source(db)
         start = datetime.utcnow()
         ret = datasource.get_raw_data_for_symbol(symbol)
         stop = datetime.utcnow()

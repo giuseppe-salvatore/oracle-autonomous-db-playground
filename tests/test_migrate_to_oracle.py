@@ -24,7 +24,7 @@ def test_replace_refuses_partial_source_symbol_list(monkeypatch):
         def get_all_symbols(self):
             return [("AAPL",), ("MSFT",)]
 
-    monkeypatch.setattr(migration, "StockMarketDataSource", lambda _name: SQLite())
+    monkeypatch.setattr(migration, "create_data_source", lambda _name: SQLite())
     monkeypatch.setattr(
         migration,
         "connect",
@@ -137,7 +137,7 @@ def _install_fake_datasources(monkeypatch, insert):
 
     monkeypatch.setattr(
         migration,
-        "StockMarketDataSource",
+        "create_data_source",
         lambda name: OracleSource() if name == "OracleDB" else SQLiteSource(),
     )
 

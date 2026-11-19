@@ -5,7 +5,7 @@
 import argparse
 from datetime import datetime
 from lib.utils.time import time_diff, to_userfriendly_str
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 
 
@@ -18,8 +18,8 @@ if __name__ == "__main__":
     ).parse_args()
     start = datetime.utcnow()
 
-    oracle_ds = StockMarketDataSource("OracleDB")
-    sqlite_ds = StockMarketDataSource("SQLite3DB")
+    oracle_ds = create_data_source("OracleDB")
+    sqlite_ds = create_data_source("SQLite3DB")
 
     print("Performing consistency check on symbols...")
 

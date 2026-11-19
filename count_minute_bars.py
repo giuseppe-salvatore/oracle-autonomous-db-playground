@@ -3,7 +3,7 @@
 # https://apexapps.oracle.com/pls/apex/r/dbpm/livelabs/view-workshop?wid=3482
 
 import argparse
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 
 available_db = ["OracleDB", "SQLite3DB"]
@@ -17,7 +17,7 @@ if __name__ == "__main__":
     db, symbol = args.db, args.symbol
 
     if db in available_db:
-        datasource = StockMarketDataSource(db)
+        datasource = create_data_source(db)
         ret = datasource.count_minute_bars(symbol)
         print("There are {} bars available in the selected db".format(ret[0][0]))
     else:
