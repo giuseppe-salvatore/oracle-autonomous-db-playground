@@ -4,6 +4,12 @@ class StockMarketDataSource:
     def __init__(self, database):
         self.db = database
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.db.close()
+
     def _ensure_connected(self):
         if not hasattr(self.db, "connection") or self.db.connection is None:
             self.db.connect()

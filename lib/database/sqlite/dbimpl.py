@@ -1,7 +1,6 @@
 import sqlite3
 import re
 
-from sqlite3 import Error
 from lib.utils.logger import log
 from sqlite3.dbapi2 import Cursor
 from lib.database.dbinterface import DBInterface
@@ -19,15 +18,11 @@ class SQLite3DB(DBInterface):
 
     def connect(self):
         """create a database connection to a SQLite database"""
-        self.connection = None
-        try:
-            self.connection = sqlite3.connect(self.db_file)
-        except Error as e:
-            log.error(e)
+        self.connection = sqlite3.connect(self.db_file)
 
     def execute_sql(self, query: str, parameters=None) -> list:
+        cursor = self.connection.cursor()
         try:
-            cursor = self.connection.cursor()
             ret: Cursor = cursor.execute(query, parameters or {})
             return ret.fetchall()
         except Exception as e:

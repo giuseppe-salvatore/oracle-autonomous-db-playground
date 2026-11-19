@@ -1,4 +1,5 @@
 import argparse
+from contextlib import ExitStack
 import multiprocessing as mp
 import time
 from datetime import datetime
@@ -58,59 +59,63 @@ def prepare_staging_table(oracle_impl):
             "Staging table minute_bars_repl already exists; it was left untouched. "
             "Review or rename it before starting another migration."
         )
-    datasource = create_data_source("OracleDB")
-    datasource.create_table(STAGING_TABLE)
+    with create_data_source("OracleDB") as datasource:
+        datasource.create_table(STAGING_TABLE)
 
 
 def migrate_symbol(symbol):
     started = datetime.now()
-    oracle_datasource = create_data_source("OracleDB")
-    sqlite_datasource = create_data_source("SQLite3DB")
-    rows = sqlite_datasource.get_raw_data_for_symbol(symbol)
-    converted_rows = [
-        (
-            row[0],
-            datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S"),
-            row[2],
-            row[3],
-            row[4],
-            row[5],
-            row[6],
-        )
-        for row in rows
-    ]
-
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            oracle_datasource.insert_raw_data_for_symbol_in_table(
-                STAGING_TABLE, converted_rows
+    with (
+        create_data_source("OracleDB") as oracle_datasource,
+        create_data_source("SQLite3DB") as sqlite_datasource,
+    ):
+        rows = sqlite_datasource.get_raw_data_for_symbol(symbol)
+        converted_rows = [
+            (
+                row[0],
+                datetime.strptime(row[1], "%Y-%m-%d %H:%M:%S"),
+                row[2],
+                row[3],
+                row[4],
+                row[5],
+                row[6],
             )
-            break
-        except DatabaseError as error:
-            error_text = str(error)
-            if "ORA-00001" in error_text:
-                raise RuntimeError(
-                    "Duplicate rows rejected while migrating symbol {!r}".format(symbol)
-                ) from error
-            if RETRYABLE_ORACLE_CODE not in error_text or attempt == MAX_RETRIES:
-                raise RuntimeError(
-                    "Migration failed for symbol {!r} after {} attempt(s): {}".format(
-                        symbol, attempt + 1, error_text
-                    )
-                ) from error
-            delay = 2**attempt
-            log.warning(
-                "Retryable Oracle error for %s; retry %s/%s in %s seconds",
-                symbol,
-                attempt + 1,
-                MAX_RETRIES,
-                delay,
-            )
-            time.sleep(delay)
+            for row in rows
+        ]
 
-    elapsed = str(datetime.now() - started).split(".", 2)[0]
-    log.info("Migrated %s rows for %s in %s", len(rows), symbol, elapsed)
-    return symbol, len(rows)
+        for attempt in range(MAX_RETRIES + 1):
+            try:
+                oracle_datasource.insert_raw_data_for_symbol_in_table(
+                    STAGING_TABLE, converted_rows
+                )
+                break
+            except DatabaseError as error:
+                error_text = str(error)
+                if "ORA-00001" in error_text:
+                    raise RuntimeError(
+                        "Duplicate rows rejected while migrating symbol {!r}".format(
+                            symbol
+                        )
+                    ) from error
+                if RETRYABLE_ORACLE_CODE not in error_text or attempt == MAX_RETRIES:
+                    raise RuntimeError(
+                        "Migration failed for symbol {!r} after {} attempt(s): {}".format(
+                            symbol, attempt + 1, error_text
+                        )
+                    ) from error
+                delay = 2**attempt
+                log.warning(
+                    "Retryable Oracle error for %s; retry %s/%s in %s seconds",
+                    symbol,
+                    attempt + 1,
+                    MAX_RETRIES,
+                    delay,
+                )
+                time.sleep(delay)
+
+        elapsed = str(datetime.now() - started).split(".", 2)[0]
+        log.info("Migrated %s rows for %s in %s", len(rows), symbol, elapsed)
+        return symbol, len(rows)
 
 
 def validate_staging(oracle_impl, sqlite_datasource, symbols):
@@ -184,43 +189,45 @@ def replace_target(oracle_impl):
 
 
 def run_migration(options):
-    sqlite_datasource = create_data_source("SQLite3DB")
-    source_symbols = {row[0] for row in sqlite_datasource.get_all_symbols()}
-    symbols = options.symbols or sorted(source_symbols)
-    if len(symbols) != len(set(symbols)):
-        raise ValueError("Each symbol may be listed only once")
-    unknown_symbols = set(symbols) - source_symbols
-    if unknown_symbols:
-        raise ValueError(
-            "Symbols were not found in SQLite: {}".format(
-                ", ".join(sorted(unknown_symbols))
+    with ExitStack() as stack:
+        sqlite_datasource = stack.enter_context(create_data_source("SQLite3DB"))
+        source_symbols = {row[0] for row in sqlite_datasource.get_all_symbols()}
+        symbols = options.symbols or sorted(source_symbols)
+        if len(symbols) != len(set(symbols)):
+            raise ValueError("Each symbol may be listed only once")
+        unknown_symbols = set(symbols) - source_symbols
+        if unknown_symbols:
+            raise ValueError(
+                "Symbols were not found in SQLite: {}".format(
+                    ", ".join(sorted(unknown_symbols))
+                )
             )
-        )
-    if options.replace and (not source_symbols or set(symbols) != source_symbols):
-        raise ValueError(
-            "--replace requires migrating every source symbol; run without --replace "
-            "to stage a partial migration safely"
-        )
-    oracle_impl = connect()
-    prepare_staging_table(oracle_impl)
+        if options.replace and (not source_symbols or set(symbols) != source_symbols):
+            raise ValueError(
+                "--replace requires migrating every source symbol; run without --replace "
+                "to stage a partial migration safely"
+            )
+        oracle_impl = connect()
+        stack.callback(oracle_impl.close)
+        prepare_staging_table(oracle_impl)
 
-    try:
-        with mp.Pool(processes=options.workers) as pool:
-            pool.map(migrate_symbol, symbols)
-        validate_staging(oracle_impl, sqlite_datasource, symbols)
-        if options.replace:
-            replace_target(oracle_impl)
-            log.info(
-                "Validated staging table replaced minute_bars; prior target retained as backup"
-            )
-        else:
-            log.info(
-                "Validated data remains in %s; minute_bars was not changed",
-                STAGING_TABLE,
-            )
-    except Exception:
-        log.error("Migration failed; existing minute_bars was left untouched")
-        raise
+        try:
+            with mp.Pool(processes=options.workers) as pool:
+                pool.map(migrate_symbol, symbols)
+            validate_staging(oracle_impl, sqlite_datasource, symbols)
+            if options.replace:
+                replace_target(oracle_impl)
+                log.info(
+                    "Validated staging table replaced minute_bars; prior target retained as backup"
+                )
+            else:
+                log.info(
+                    "Validated data remains in %s; minute_bars was not changed",
+                    STAGING_TABLE,
+                )
+        except Exception:
+            log.error("Migration failed; existing minute_bars was left untouched")
+            raise
 
 
 def main(args=None):

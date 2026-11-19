@@ -4,6 +4,13 @@ from abc import ABC, abstractmethod
 class DBInterface(ABC):
     """Operations required by database consumers."""
 
+    def __enter__(self):
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     @abstractmethod
     def configure(self):
         """Load database configuration."""
