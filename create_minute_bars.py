@@ -11,7 +11,7 @@ if __name__ == "__main__":
     db = parser.parse_args().db
 
     if db in available_db:
-        datasource = create_data_source(db)
-        ret = datasource.create_table("minute_bars")
+        with create_data_source(db) as datasource:
+            ret = datasource.create_table("minute_bars")
     else:
         raise Exception(f"Unknown database {db}")

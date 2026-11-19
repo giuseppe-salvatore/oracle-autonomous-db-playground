@@ -21,6 +21,12 @@ def test_parse_args_rejects_zero_workers():
 
 def test_replace_refuses_partial_source_symbol_list(monkeypatch):
     class SQLite:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            pass
+
         def get_all_symbols(self):
             return [("AAPL",), ("MSFT",)]
 
@@ -125,13 +131,20 @@ def test_replace_target_copies_to_compatible_schema_and_keeps_backup():
 
 
 def _install_fake_datasources(monkeypatch, insert):
-    class OracleSource:
+    class ContextSource:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            pass
+
+    class OracleSource(ContextSource):
         def insert_raw_data_for_symbol_in_table(self, table, rows):
             assert table == migration.STAGING_TABLE
             assert rows[0][1] == datetime(2024, 1, 2, 3, 4, 5)
             insert()
 
-    class SQLiteSource:
+    class SQLiteSource(ContextSource):
         def get_raw_data_for_symbol(self, _symbol):
             return [("AAPL", "2024-01-02 03:04:05", 1, 2, 3, 0, 4)]
 
