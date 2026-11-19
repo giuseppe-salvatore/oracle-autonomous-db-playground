@@ -11,7 +11,7 @@ from datetime import datetime
 from datetime import timedelta
 from oracledb.exceptions import DatabaseError
 from lib.database.oracle.dbimpl import OracleDB
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 
 install_error_handler("db_connect")
@@ -129,8 +129,8 @@ print("Create minute_bars table")
 oracle_impl.execute_ddl(create_minute_bars_table)
 
 
-oracleDatasource = StockMarketDataSource("OracleDB")
-sqliteDatasource = StockMarketDataSource("SQLite3DB")
+oracleDatasource = create_data_source("OracleDB")
+sqliteDatasource = create_data_source("SQLite3DB")
 # #ret = oracleDatasource.get_all_symbols()
 # #ret2 = sqliteDatasource.get_all_symbols()
 

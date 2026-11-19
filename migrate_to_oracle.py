@@ -5,7 +5,7 @@ from datetime import datetime
 
 from oracledb.exceptions import DatabaseError
 
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 from lib.database.oracle.dbimpl import OracleDB
 from lib.utils.logger import log
@@ -58,14 +58,14 @@ def prepare_staging_table(oracle_impl):
             "Staging table minute_bars_repl already exists; it was left untouched. "
             "Review or rename it before starting another migration."
         )
-    datasource = StockMarketDataSource("OracleDB")
+    datasource = create_data_source("OracleDB")
     datasource.create_table(STAGING_TABLE)
 
 
 def migrate_symbol(symbol):
     started = datetime.now()
-    oracle_datasource = StockMarketDataSource("OracleDB")
-    sqlite_datasource = StockMarketDataSource("SQLite3DB")
+    oracle_datasource = create_data_source("OracleDB")
+    sqlite_datasource = create_data_source("SQLite3DB")
     rows = sqlite_datasource.get_raw_data_for_symbol(symbol)
     converted_rows = [
         (
@@ -184,7 +184,7 @@ def replace_target(oracle_impl):
 
 
 def run_migration(options):
-    sqlite_datasource = StockMarketDataSource("SQLite3DB")
+    sqlite_datasource = create_data_source("SQLite3DB")
     source_symbols = {row[0] for row in sqlite_datasource.get_all_symbols()}
     symbols = options.symbols or sorted(source_symbols)
     if len(symbols) != len(set(symbols)):

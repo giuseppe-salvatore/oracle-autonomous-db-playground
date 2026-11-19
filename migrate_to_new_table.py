@@ -8,7 +8,7 @@ import time
 
 from datetime import datetime
 from oracledb.exceptions import DatabaseError
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 
 install_error_handler("migrate_to_new_table")
@@ -55,7 +55,7 @@ entires = 100000
 
 ops_start_time = datetime.utcnow()
 
-sqliteDatasource = StockMarketDataSource("SQLite3DB")
+sqliteDatasource = create_data_source("SQLite3DB")
 
 start_fetching = datetime.utcnow()
 

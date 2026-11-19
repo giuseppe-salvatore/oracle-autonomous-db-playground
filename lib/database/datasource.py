@@ -1,18 +1,8 @@
 class StockMarketDataSource:
     ALLOWED_TABLES = {"minute_bars", "minute_bars_repl"}
 
-    def __init__(self, datasource):
-
-        if datasource == "OracleDB":
-            from lib.database.oracle.dbimpl import OracleDB
-
-            self.db = OracleDB()
-        elif datasource == "SQLite3DB":
-            from lib.database.sqlite.dbimpl import SQLite3DB
-
-            self.db = SQLite3DB()
-        else:
-            raise ModuleNotFoundError("Cannot find database {}".format(datasource))
+    def __init__(self, database):
+        self.db = database
 
     def _ensure_connected(self):
         if not hasattr(self.db, "connection") or self.db.connection is None:

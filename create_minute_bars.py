@@ -1,5 +1,5 @@
 import argparse
-from lib.database.datasource import StockMarketDataSource
+from lib.database.factory import create_data_source
 from lib.utils.cli import install_error_handler
 
 available_db = ["OracleDB"]
@@ -11,7 +11,7 @@ if __name__ == "__main__":
     db = parser.parse_args().db
 
     if db in available_db:
-        datasource = StockMarketDataSource(db)
+        datasource = create_data_source(db)
         ret = datasource.create_table("minute_bars")
     else:
         raise Exception(f"Unknown database {db}")
